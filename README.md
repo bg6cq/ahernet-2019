@@ -185,7 +185,7 @@ services:
   web:
     build: .
     ports:
-     - "9000:5000"
+     - "9000:5000"  #注意：9000最后2位请用自己编号代替
 
   redis:
     image: "redis:alpine"
