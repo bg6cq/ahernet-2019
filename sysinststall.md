@@ -42,4 +42,4 @@ for i in `seq 0 9`; do
    usermod -aG dockerroot user${M}${i}
 done
 
-
+8. 重新启动，selinux修改才会生效

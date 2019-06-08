@@ -185,7 +185,12 @@ services:
 
   redis:
     image: "redis:alpine"
+    volumes:
+     - ~/compose/redis:/data
 ```
+注意上面要用空格对齐，不能用TAB
+
+使用上面的配置，redis 文件存放在 ~/compose/redis 目录下，删除container，不会丢失。
 
 #### 8.5 运行
 
@@ -193,6 +198,8 @@ services:
 ```
 docker-compose up
 ```
+
+调试时，如果出错，最好用`docker-compose rm`删除已经建立的container，重新开始。
 
 #### 8.6 测试
 
