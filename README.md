@@ -133,9 +133,12 @@ docker container stop user${ID}ipdesc
 
 
 #### 8.1 建立目录
+
+注意：因为docker-compose生成的container与目录名有关，为了互相不影响，采用不同的目录名
+
 ```
-mkdir ~/compose
-cd ~/compose
+mkdir ~/compose${ID}
+cd ~/compose${ID}
 ```
 
 #### 8.2 编辑 app.py 文件
@@ -187,11 +190,11 @@ services:
   redis:
     image: "redis:alpine"
     volumes:
-     - ~/compose/redis:/data
+     - ~/redis:/data
 ```
 注意上面要用空格对齐，不能用TAB
 
-使用上面的配置，redis 文件存放在 ~/compose/redis 目录下，删除container，不会丢失。
+使用上面的配置，redis 文件存放在 ~/redis 目录下，删除container，不会丢失。
 
 #### 8.5 运行
 
