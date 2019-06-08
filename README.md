@@ -1,4 +1,4 @@
-## 实验操作
+## Docker 实验操作
 
 
 注意，登录时自动设置了ID=xx，xx是用户名的最后2位数字
@@ -78,9 +78,9 @@ docker container stop user${ID}nginx
 ```
 docker login   #按照提示输入用户名和密码
 
-docker tag user${ID}/nginx  USERID/nginx  # USERID请用hub.docker.com账号名替换
+docker tag user${ID}/nginx  USERID/nginx  #USERID请用hub.docker.com账号名替换
 
-docker push  USERID/nginx #  USERID请用hub.docker.com账号名替换
+docker push  USERID/nginx   #USERID请用hub.docker.com账号名替换
 
 ```
 如果上传成功，在 http://hub.docker.com/u/USERID 处可以看到
@@ -131,13 +131,13 @@ docker container stop user${ID}ipdesc
 实验来自 https://yeasy.gitbooks.io/docker_practice/content/compose/usage.html
 
 
-8.1 建立目录
+#### 8.1 建立目录
 ```
 mkdir ~/compose
 cd ~/compose
 ```
 
-8.2 编辑 app.py 文件
+#### 8.2 编辑 app.py 文件
 
 `vi app.py`，输入以下内容
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
 ```
 
-8.3 编辑 Dockerfile
+#### 8.3 编辑 Dockerfile
 
 `vi Dockerfile`，输入以下内容
 
@@ -169,7 +169,7 @@ RUN pip install redis flask
 CMD ["python", "app.py"]
 ```
 
-8.4 编辑 docker-compose.yml
+#### 8.4 编辑 docker-compose.yml
 
 `vi docker-compose.yml`，输入以下内容：
 
@@ -187,61 +187,23 @@ services:
     image: "redis:alpine"
 ```
 
-8.5 运行
+#### 8.5 运行
 
 在当前目录下：
 ```
-docker-compose up -d
+docker-compose up
 ```
 
-8.6 测试
-
+#### 8.6 测试
 
 使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，看到统计信息刷新一次加1。
 
+测试时，服务器的窗口能看到一些调试信息。
 
-实验结束。
+CTRL-C可以终止。
 
+#### 8.7 正式运行
 
+正式运行，可以用命令 docker-compose up -d 在后台执行。
 
-
-
-
-
-
-
-
-
-
-### 环境准备
-
-1. 安装CentOS 7.1810
-
-2. 设置IP地址
-
-3. yum update -y 更新
-
-4. yum install -y git gcc docker glibc-static
-
-5. systemctl enable docker
-
-6. vi /etc/selinux/config
-
-修改
-SELINUX=enforcing 为  disabled
-
-7. vi /etc/docker/daemon.json
-
-{
-    "live-restore": true,
-    "group": "dockerroot"
-}
-
-
-7. adduser user00
-   
-   passwd user00
-
-   usermod -aG dockerroot user00
-
-
+`docker-compose down`可以停止。
