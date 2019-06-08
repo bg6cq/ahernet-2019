@@ -4,6 +4,8 @@
 注意，登录时自动设置了ID=xx，xx是用户名的最后2位数字
 
 
+建议这里下载 [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) 连接服务器。
+
 ### 1. 下载一个最小alpine Linux
 
 ```
