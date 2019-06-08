@@ -42,14 +42,15 @@ exit
 ```
 mkdir ~/nginx
 cd ~/nginx
-vi Dockerfile  内容如下2行
-
+```
+`vi Dockerfile`编辑文件,内容如下2行
+```
 FROM nginx
 RUN echo '<h1>Hello, docker!</h1>' > /usr/share/nginx/html/index.html
+```
 
-
-退出vi 
-
+退出vi ，执行
+```
 docker build . -t user${ID}/nginx
 docker image ls 
 docker run --rm -p 90${ID}:80 --name user${ID}nginx -d user${ID}/nginx
