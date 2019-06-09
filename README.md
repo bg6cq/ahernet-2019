@@ -1,10 +1,13 @@
 ## Docker 实验操作
 
 
-注意，登录时自动设置了ID=xx，xx是用户名的最后2位数字
+说明:
+
+* 登录时自动设置了ID=xx，xx是用户名的最后2位数字。
+* 设置了alias dc='docker container'，以后任何输入docker container的地方，都可以使用dc。
 
 
-建议这里下载 [putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) 连接服务器。
+建议这里下载 [https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) 连接服务器。
 
 ### 1. 下载一个最小alpine Linux
 

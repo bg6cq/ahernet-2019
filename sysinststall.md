@@ -31,6 +31,8 @@ SELINUX=enforcing 为disabled
 增加
 
 export ID=$(whoami |cut -c5-6)
+alias dc='docker container'
+
 
 7. 
 
