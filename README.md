@@ -60,11 +60,11 @@ RUN echo '<h1>Hello, docker, I am user00!</h1>' > /usr/share/nginx/html/index.ht
 ```
 docker build . -t user${ID}/nginx
 docker image ls 
-docker run --rm -p 90${ID}:80 --name user${ID}nginx -d user${ID}/nginx
+docker run --rm -p 30${ID}:80 --name user${ID}nginx -d user${ID}/nginx
 
 ```
 
-这时，使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，看到
+这时，使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，看到
 
 Hello, docker!
 
@@ -121,13 +121,13 @@ curl http://202.38.64.40/17monipdb.datx > 17monipdb.datx
 docker build . -t user${ID}/ipdesc
 
 docker image ls
-docker run --rm -p 90${ID}:80 --name user${ID}ipdesc -d user${ID}/ipdesc
+docker run --rm -p 30${ID}:80 --name user${ID}ipdesc -d user${ID}/ipdesc
 
 ```
 
-这时，使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，看到IP地址来源信息。
+这时，使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，看到IP地址来源信息。
 
-访问  http://x.x.x.x:9000/y.y.y.y 可以得到y.y.y.y的地址来源信息。
+访问  http://x.x.x.x:3000/y.y.y.y 可以得到y.y.y.y的地址来源信息。
 
 执行以下命令停止ipdesc
 ```
@@ -155,11 +155,11 @@ curl https://raw.githubusercontent.com/tennc/webshell/master/www-7jyewu-cn/%E5%8
 
 ```
 cd ~/phptest
-docker run -dit --name user${ID}php --rm -v $PWD:/var/www/html -p 90${ID}:80 php:apache
+docker run -dit --name user${ID}php --rm -v $PWD:/var/www/html -p 30${ID}:80 php:apache
 docker cp index.php  user${ID}php:/
 ```
 
-这时，使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，可以看到一个对web服务器的控制界面。
+这时，使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，可以看到一个对web服务器的控制界面。
 
 向 /var/www/html /var/tmp 分别上传一个文件，上传文件可以正常进行。
 
@@ -179,10 +179,10 @@ docker diff user${ID}php
 ```
 cd ~/phptest
 docker container stop user${ID}php
-docker run -dit --name user${ID}php --rm -v $PWD:/var/www/html:ro -p 90${ID}:80 php:apache
+docker run -dit --name user${ID}php --rm -v $PWD:/var/www/html:ro -p 30${ID}:80 php:apache
 ```
 
-这时，使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，因为是只读映射，向 /var/www/html 上传文件会出现错误。
+这时，使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，因为是只读映射，向 /var/www/html 上传文件会出现错误。
 
 执行以下命令停止php
 ```
@@ -240,7 +240,7 @@ CMD ["python", "app.py"]
 
 `vi docker-compose.yml`，输入以下内容：
 
-注意：9000最后2位请用自己编号代替
+注意：3000最后2位请用自己编号代替
 ```
 version: '3'
 services:
@@ -248,7 +248,7 @@ services:
   web:
     build: .
     ports:
-     - "9000:5000"  #注意：9000最后2位请用自己编号代替
+     - "3000:5000"  #注意：3000最后2位请用自己编号代替
 
   redis:
     image: "redis:alpine"
@@ -270,7 +270,7 @@ docker-compose up
 
 #### 9.6 测试
 
-使用PC机可以访问 http://x.x.x.x:9000 (IP请用服务器IP，9000最后2位用自己编号)，看到统计信息刷新一次加1。
+使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，看到统计信息刷新一次加1。
 
 测试时，服务器的窗口能看到一些调试信息。
 
