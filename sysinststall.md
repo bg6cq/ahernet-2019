@@ -34,7 +34,13 @@ export ID=$(whoami |cut -c5-6)
 alias dc='docker container'
 
 
-7. 
+7. vi /etc/rc.local
+
+增加
+
+/usr/sbin/rngd -r /dev/urandom &
+
+8.
 
 M=1
 PASS=pass

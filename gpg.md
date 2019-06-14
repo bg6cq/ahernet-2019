@@ -8,7 +8,7 @@
 
 ### 1. 生成私钥和公钥
 
-注：因生成4096bit私钥可能需要30分钟，本实验使用1024bit私钥。实际使用中请尽量使用4096bit私钥。
+注：默认生成4096 bit私钥可能需要30分钟或更久，服务器上已经执行了命令`rngd -r /dev/urandom`，从硬件获取随机数，加快私钥生成速度。
 
 ```
 $ gpg --gen-key    ## 输入的命令
@@ -24,7 +24,7 @@ There is NO WARRANTY, to the extent permitted by law.
    (4) RSA (仅用于签名)
 您的选择？ 1     ## 输入1
 RSA 密钥长度应在 1024 位与 4096 位之间。
-您想要用多大的密钥尺寸？(2048)1024    ## 输入1024
+您想要用多大的密钥尺寸？(2048)1024    ## 输入1024 或 2048 或 4096
 您所要求的密钥尺寸是 1024 位
 请设定这把密钥的有效期限。
          0 = 密钥永不过期
@@ -66,272 +66,160 @@ uid                  User00 <user00@test.ah.edu.cn>
 sub   1024R/7B19795F 2019-06-13
 ```
 
-注意，输入密码开始生成私钥时，可能需要很长时间，请耐心等待。可以另开一个ssh登录，不停的执行`ls -R /`以加快私钥的生成。
+上面主密钥ID是AAF20672，请记住，下面会用到。
 
-上面主密码ID是AAF20672，请记住，下面会用到。
+### 2. 查看私钥和公钥
 
-### 2. 运行最小alpine Linux
 
 ```
-docker run -it --name user${ID}_linux alpine /bin/sh  
-ps ax
-df
-exit
+gpg --list-key --fingerprint
 
-docker container ls -a
-docker container rm user${ID}_linux
+gpg --edit-key AAF20672    ## 请用自己的主密钥ID
+q
 ```
 
-### 3. 运行ubuntu
+显示的密钥功能，S是签名，C是证书，E是加解密，A是认证。
 
-退出后自动删除
+### 3. 导出私钥和公钥
 
+导出密钥并显示。
+
+请用自己的密钥ID替换下面的命令：
 ```
-docker run -it --rm ubuntu /bin/bash
-ps ax
-cat /etc/os-release
-df -ah
-exit
-```
+gpg --armor --export-secret-keys AAF20672 > user${ID}-sec-key.txt
+gpg --armor --export AAF20672 > user${ID}-pub-key.txt
 
-### 4. 简单的Dockerfile
-
-基于nginx，生成一个简单的image
-
-```
-mkdir ~/nginx
-cd ~/nginx
+more user${ID}*key.txt 
 ```
 
-`vi Dockerfile`编辑文件,内容如下2行(可以用自己的编号替换user00)
+### 4. 将公钥上传到 公钥服务器
 
 ```
-FROM nginx
-RUN echo '<h1>Hello, docker, I am user00!</h1>' > /usr/share/nginx/html/index.html
+gpg --keyserver pgp.ustc.edu.cn --send-keys AAF20672
 ```
 
-退出vi ，执行
-```
-docker build . -t user${ID}/nginx
-docker image ls 
-docker run --rm -p 30${ID}:80 --name user${ID}nginx -d user${ID}/nginx
+命令执行后，使用浏览器访问 http://pgp.ustc.edu.cn/ 输入0xAAF20672 ，可以查询到密钥。
+
+### 5. 通过文件交换公钥
+
+GPG正确工作的前提是获取到其他人的公钥。
+
+找同一台机器上的用户，把 user??-pub-key.txt 拷贝到 /tmp/ 目录
 
 ```
-
-这时，使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，看到
-
-Hello, docker!
-
-执行以下命令停止nginx
-```
-docker container stop user${ID}nginx
+gpg --import /tmp/user??-pub-key.txt
+gpg --list-key
 ```
 
+可以导入别人的公钥。
 
-### 5. 申请hub.docker.com 账号
+### 6. 通过keyserver交换公钥
 
-浏览器访问 http://hub.docker.com 单击 "Sign up for Docker Hub"，注册一个账号。
+请询问旁边用户的公钥ID，在他/她已经把公钥上传服务器后，通过公钥服务器可以获取公钥。
 
-
-### 6. 上传image
-
-在虚拟机中，执行
-
+如果知道了对方的公钥ID(下面的例子是2BE69E45)，可以执行
 ```
-docker login   #按照提示输入用户名和密码
-
-docker tag user${ID}/nginx  USERID/nginx  #USERID请用hub.docker.com账号名替换
-
-docker push USERID/nginx   #USERID请用hub.docker.com账号名替换
-
-```
-如果上传成功，在 http://hub.docker.com/u/USERID 处可以看到
-
-
-
-### 7. 一个查询IP地址归属地的docker
-
-注意，进行本实验时，请确保上述nginx的container已经停止。
-
-本实验的Dockerfile是FROM scratch，仅仅增加了2个文件:
-
-```
-17monipdb.datx 是数据文件，来自 http://ipip.net
-ipdescd 是静态编译的服务程序
+gpg --keyserver pgp.ustc.edu.cn --recv-keys 2BE69E45
+gpg --list-key
 ```
 
-不到4MB的docker，可以高速返回IP地址归属地信息。
+注意：近期keyserver工作不正常，这种方法很可能失败。
 
-实验步骤：
 
-```
-cd ~
+### 6. 信任别人的公钥
 
-git clone https://github.com/bg6cq/ipdesc
-cd ipdesc
-gcc -static -o ipdescd -Wall ipdescd.c ipip.c
-curl http://202.38.64.40/17monipdb.datx > 17monipdb.datx
+通过上述步骤5或6获取的公钥，默认是不信任的。
 
-docker build . -t user${ID}/ipdesc
-
-docker image ls
-docker run --rm -p 30${ID}:80 --name user${ID}ipdesc -d user${ID}/ipdesc
+如果要信任一个公钥，执行
 
 ```
-
-这时，使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，看到IP地址来源信息。
-
-访问  http://x.x.x.x:3000/y.y.y.y 可以得到y.y.y.y的地址来源信息。
-
-执行以下命令停止ipdesc
+gpg --edit-key 2BE69E45
+trust
+5
+y
+q
 ```
-docker container stop user${ID}ipdesc
+信任后的公钥，将来使用时，不会出现不信任的提示。
+
+
+### 7. 加密一个文件
+
+加密文件时，需要用到接收方（即将来解密方）的公钥。公钥是上述5、6导入并经过7信任的。
+
+假定user00要发送给user01一个加密文件:
+
+编辑文件 `test_to_user01.txt`，是我们要加密的内容：
 ```
-
-### 8. 只读目录映射实验
-
-实验内容：下载一个黑客程序（大马），对比文件目录映射 是否只读 的区别。
-
-#### 8.1 准备
-
-在自己目录下建立 phptest 目录，并改为所有人可以读写，下载一个大马php程序。
-
-```
-mkdir ~/phptest
-cd ~/phptest
-chmod a+rwx .
-curl https://raw.githubusercontent.com/tennc/webshell/master/www-7jyewu-cn/%E5%85%8D%E6%9D%80php%E5%A4%A7%E9%A9%AC.php > index.php
+this is a test from user00 to user01
 ```
 
-#### 8.2 读写映射执行
+加密操作
 
-启动container，并copy进去一个文件。
-
-```
-cd ~/phptest
-docker run -dit --name user${ID}php --rm -v $PWD:/var/www/html -p 30${ID}:80 php:apache
-docker cp index.php  user${ID}php:/
-```
-
-这时，使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，可以看到一个对web服务器的控制界面。
-
-向 /var/www/html /var/tmp 分别上传一个文件，上传文件可以正常进行。
-
-在服务器上执行：
-```
-ls -al ~/phptest
-
-docker diff user${ID}php 
-```
-
-第一个命令可以看到上传到 /var/www/html 的文件。
-
-第二个命令可以看到container启动后，相对image，修改了哪些文件。
-
-
-#### 8.3 只读映射执行
-```
-cd ~/phptest
-docker container stop user${ID}php
-docker run -dit --name user${ID}php --rm -v $PWD:/var/www/html:ro -p 30${ID}:80 php:apache
-```
-
-这时，使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，因为是只读映射，向 /var/www/html 上传文件会出现错误。
-
-执行以下命令停止php
-```
-docker container stop user${ID}php
-```
-
-
-### 9. docker-compose 实验
-
-实验来自 https://yeasy.gitbooks.io/docker_practice/content/compose/usage.html
-
-
-#### 9.1 建立目录
-
-注意：因为docker-compose生成的container与目录名有关，为了互相不影响，采用不同的目录名
+-r 后面是接收人的标识。
 
 ```
-mkdir ~/compose${ID}
-cd ~/compose${ID}
+gpg -r user01 --armor -e test_to_user01.txt 
+```
+默认会生成文件 test_to_user01.txt.asc，可以用more 查看文件内容。
+
+### 8. 解密文件
+
+解密时，需要接收方的私钥，所以执行时会提醒输入私钥的密码。
+
+把以上7加密生成的文件交给 接收人（上面例子是user01），比如通过 /tmp/ 目录中转。
+
+接收人执行以下命令解密：
+```
+gpg -d /tmp/test_to_user01.txt.asc > out.txt
 ```
 
-#### 9.2 编辑 app.py 文件
+out.txt里是最早输入的`this is a test from user00 to user01`。
 
-`vi app.py`，输入以下内容
 
+### 9. 签名一个文件
+
+签名时，需要用到签名放的私钥，所以执行时会提醒输入私钥的密码。
+
+假定user00要对一个文件签名：
+
+编辑文件 `test_sign_user00.txt`，写入：
 ```
-from flask import Flask
-from redis import Redis
-
-app = Flask(__name__)
-redis = Redis(host='redis', port=6379)
-
-@app.route('/')
-def hello():
-    count = redis.incr('hits')
-    return 'Hello World! 该页面已被访问 {} 次。\n'.format(count)
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", debug=True)
+this file is from user00
 ```
 
-#### 9.3 编辑 Dockerfile
-
-`vi Dockerfile`，输入以下内容
-
+签名操作：
 ```
-FROM python:3.6-alpine
-ADD . /code
-WORKDIR /code
-RUN pip install redis flask
-CMD ["python", "app.py"]
+gpg -s --armor test_sign_user00.txt
 ```
 
-#### 9.4 编辑 docker-compose.yml
+签名得到的结果文件是 test_sign_user00.txt.asc
 
-`vi docker-compose.yml`，输入以下内容：
+将这个文件拷贝到 /tmp
 
-注意：3000最后2位请用自己编号代替
+### 10. 其他用户的验证签名
+
+其他用户只要导入了user00的公钥，都可以验证签名。
+
 ```
-version: '3'
-services:
-
-  web:
-    build: .
-    ports:
-     - "3000:5000"  #注意：3000最后2位请用自己编号代替
-
-  redis:
-    image: "redis:alpine"
-    volumes:
-     - ~/redis:/data
-```
-注意上面要用空格对齐，不能用TAB
-
-使用上面的配置，redis 文件存放在 ~/redis 目录下，删除container，不会丢失。
-
-#### 9.5 运行
-
-在当前目录下：
-```
-docker-compose up
+gpg --verify /tmp/test_sign_user00.txt.asc
+gpg -d /tmp/test_sign_user00.txt.asc
 ```
 
-调试时，如果出错，最好用`docker-compose rm`删除已经建立的container，重新开始。
+第一个命令仅仅验证文件是什么时间，谁签名的。
 
-#### 9.6 测试
+第二个命令还会显示文件的内容。
 
-使用PC机可以访问 http://x.x.x.x:3000 (IP请用服务器IP，3000最后2位用自己编号)，看到统计信息刷新一次加1。
+### 11. 明文签名
 
-测试时，服务器的窗口能看到一些调试信息。
+上述9生成的签名文件，必须使用gpg处理后才能看到文件内容，无法直观看到之前的文件内容。
 
-CTRL-C可以终止。
+`more test_sign_user00.txt.asc`可以看到签名后的内容。
 
-#### 9.7 正式运行
+有时候我们希望文件原文可读，这时可以使用明文签名：
+```
+gpg --clearsign test_sign_user00.txt
+more test_sign_user00.txt.asc
+```
+可以看到这里有原来的文件内容。
 
-正式运行，可以用命令 docker-compose up -d 在后台执行。
-
-`docker-compose down`可以停止。
+其余验证步骤是相同的。
