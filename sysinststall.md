@@ -41,9 +41,15 @@ alias dc='docker container'
 
 7. vi /etc/rc.local
 
-增加
-
+增加一行
+```
 /usr/sbin/rngd -r /dev/urandom &
+```
+
+并把文件改为可执行
+```
+chmod a+x /etc/rc.local
+```
 
 8.
 
